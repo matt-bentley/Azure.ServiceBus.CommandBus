@@ -348,3 +348,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/Azure.ServiceBus.CommandBus.Processor/Properties/launchSettings.json
+/Azure.ServiceBus.CommandBus.Sender/Properties/launchSettings.json
