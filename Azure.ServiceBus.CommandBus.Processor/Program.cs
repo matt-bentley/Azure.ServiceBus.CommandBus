@@ -1,5 +1,6 @@
-﻿using Azure.ServiceBus.CommandBus;
-using Azure.ServiceBus.CommandBus.Exceptions;
+﻿using CommandBus;
+using CommandBus.Application.CommandHandlers;
+using CommandBus.Application.Commands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,43 +12,35 @@ var configuration = new ConfigurationBuilder()
                         .AddEnvironmentVariables()
                         .Build();
 
-var serviceProvider = new ServiceCollection()
-                        .AddCommandBusProcessor(options =>
-                        {
-                            configuration.GetSection("CommandBus").Bind(options);
-                        })
+var services = new ServiceCollection()
                         .AddLogging(builder =>
                         {
                             builder.SetMinimumLevel(LogLevel.Information);
                             builder.AddConsole();
-                        })
-                        .BuildServiceProvider();
+                        });
+
+services.AddCommandBus()
+        .AddProcessor(options =>
+        {
+            configuration.GetSection("CommandBus").Bind(options);
+        })
+        .AddHandlers(typeof(EchoCommandHandler).Assembly);
+
+var serviceProvider = services.BuildServiceProvider();
 
 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
 logger.LogInformation($"Starting Processor: {queueName}");
 
-await using (var commandBusProcessor = serviceProvider.GetRequiredService<ICommandBusProcessor>())
+await using (var commandBus = serviceProvider.GetRequiredService<ICommandBus>())
 {
-    commandBusProcessor.RegisterHandler(async (message) =>
-    {
-        logger.LogInformation("Processing message: {message}", message);
-        if (message == "Error")
-        {
-            throw new ApplicationException("There was an error");
-        }
-        if (message == "Hello 10!")
-        {
-            throw new CommandValidationException($"Invalid message: {message}");
-        }
-        await Task.CompletedTask;
-    });
+    commandBus.RegisterHandlers(typeof(EchoCommandHandler).Assembly);
 
-    await commandBusProcessor.StartProcessingAsync();
+    await commandBus.StartProcessingAsync();
 
     logger.LogInformation("Processor waiting for messages...");
     Console.ReadKey();
-    await commandBusProcessor.StopProcessingAsync();
+    await commandBus.StopProcessingAsync();
 }
 
 logger.LogInformation("Complete!");

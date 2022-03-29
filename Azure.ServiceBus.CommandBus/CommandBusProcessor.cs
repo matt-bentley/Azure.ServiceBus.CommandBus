@@ -108,15 +108,12 @@ namespace Azure.ServiceBus.CommandBus
 
         private async Task SendReplyAsync(CommandResponseMessage response, string sessionId)
         {
-            var message = GetResponseBody(response);
-            var messageBatch = await _replySender.Value.CreateMessageBatchAsync();
-            messageBatch.TryAddMessage(
-                new ServiceBusMessage(message)
-                {
-                    SessionId = sessionId
-                });
             _logger.LogDebug("Sending response for session: {sessionId}", sessionId);
-            await _replySender.Value.SendMessagesAsync(messageBatch);
+            var message = GetResponseBody(response);
+            await _replySender.Value.SendMessageAsync(new ServiceBusMessage(message)
+            {
+                SessionId = sessionId
+            });
         }
 
         private string GetResponseBody(CommandResponseMessage response)

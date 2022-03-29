@@ -32,3 +32,5 @@ Basic response handling has been implemented. The command bus is able to return 
 
 ## Extension
 The message format has been kept as a string so that additional layers of abstraction can be added on top of the command bus using a format such as JSON.
+
+An example of extending the library is shown in the **CommandBus** project. This project uses a base handler class and serializes the commands to JSON before they are send through the command bus.

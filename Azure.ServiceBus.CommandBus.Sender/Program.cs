@@ -1,5 +1,7 @@
 ﻿using Azure.ServiceBus.CommandBus;
 using Azure.ServiceBus.CommandBus.Sender;
+using CommandBus;
+using CommandBus.Application.Commands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,26 +14,29 @@ var configuration = new ConfigurationBuilder()
                         .AddEnvironmentVariables()
                         .Build();
 
-var serviceProvider = new ServiceCollection()
-                        .AddCommandBusSender(options =>
-                        {
-                            configuration.GetSection("CommandBus").Bind(options);
-                        })
+var services = new ServiceCollection()
                         .AddLogging(builder =>
                         {
                             builder.SetMinimumLevel(LogLevel.Information);
                             builder.AddConsole();
-                        })
-                        .BuildServiceProvider();
+                        });
+
+services.AddCommandBus()
+        .AddSender(options =>
+        {
+            configuration.GetSection("CommandBus").Bind(options);
+        });
+
+var serviceProvider = services.BuildServiceProvider();
 
 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
 logger.LogInformation("Starting Sender...");
 
-await using (var commandBusSender = serviceProvider.GetRequiredService<ICommandBusSender>())
+await using (var commandBus = serviceProvider.GetRequiredService<ICommandBus>())
 {
-    await commandBusSender.SendAsync($"Hello warmup!", queueName);
-    var errorResponse = await commandBusSender.SendAsync("Error", queueName);
+    await commandBus.SendAsync(new EchoCommand($"Hello warmup!", Guid.NewGuid().ToString()), queueName);
+    var errorResponse = await commandBus.SendAsync(new EchoCommand("Error", Guid.NewGuid().ToString()), queueName);
     if (!errorResponse.IsSuccessStatusCode())
     {
         logger.LogError(errorResponse.ToString());
@@ -50,7 +55,7 @@ await using (var commandBusSender = serviceProvider.GetRequiredService<ICommandB
 
     await iterator.IterateAsync(tasks, default(CancellationToken), async (i) =>
     {
-        var response = await commandBusSender.SendAsync($"Hello {i}!", queueName);
+        var response = await commandBus.SendAsync(new EchoCommand($"Hello {i}!", Guid.NewGuid().ToString()), queueName);
         try
         {
             response.EnsureSuccessStatusCode();

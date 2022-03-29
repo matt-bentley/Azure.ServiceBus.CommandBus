@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Azure.ServiceBus.CommandBus\Azure.ServiceBus.CommandBus.csproj" />
+    <ProjectReference Include="..\CommandBus.Application\CommandBus.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
