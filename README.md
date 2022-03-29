@@ -1,6 +1,10 @@
-## Azure.ServiceBus.CommandBus
+# Azure.ServiceBus.CommandBus
 
-A Command Bus implementation using Azure Service Bus. The Command Bus is implemented using the request-reply pattern 
+A Command Bus implementation using Azure Service Bus. This can be used instead of regular asynchronous fire-and-forget messaging to ensure that commands are processed succesfully. 
+Due to the use of Azure Service Bus, there is no in-bound network traffic to the command handlers which can help in locked down environments behind a firewall.
+
+## Implementation
+The Command Bus is implemented using the request-reply pattern 
 with the following queues:
 
 ![Service Bus](pics/service-bus.png)
@@ -35,4 +39,4 @@ Basic response handling has been implemented. The command bus is able to return 
 ## Extension
 The message format has been kept as a string so that additional layers of abstraction can be added on top of the command bus using a format such as JSON.
 
-An example of extending the library is shown in the **CommandBus** project. This project uses a base handler class and serializes the commands to JSON before they are send through the command bus.
+An example of extending the library is shown in the **CommandBus** project. This project uses a base handler class and serializes the commands to JSON before they are sent through the command bus.
