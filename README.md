@@ -3,6 +3,8 @@
 A Command Bus implementation using Azure Service Bus. The Command Bus is implemented using the request-reply pattern 
 with the following queues:
 
+![Service Bus](pics/service-bus.png)
+
 #### Processor Queues
 The processor instances will receive command messages from these queues. Processing of commands can be scaled using multiple competing consumer instances. 
 
